@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoom用タイマー</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: black;
+            color: white;
+            font-size: 4em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        input {
+            font-size: 1em;
+            width: 120px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        button {
+            font-size: 1.5em;
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+        #startBtn { background-color: #28a745; color: white; }
+        #stopBtn { background-color: #dc3545; color: white; }
+        #resetBtn { background-color: #007bff; color: white; }
+        #fullScreenBtn { background-color: #ffcc00; color: black; }
+        #timer {
+            font-size: 6em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div>
+        <input type="number" id="timeInput" value="60" min="1"> 秒
+    </div>
+    <div id="timer">01:00</div>
+    <button id="startBtn" onclick="startTimer()">▶ スタート</button>
+    <button id="stopBtn" onclick="stopTimer()">⏸ ストップ</button>
+    <button id="resetBtn" onclick="resetTimer()">🔄 リセット</button>
+    <button id="fullScreenBtn" onclick="toggleFullScreen()">⛶ 全画面</button>
+
+    <audio id="alarmSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
+    <script>
+        let time = 60;
+        let timerInterval;
+        let isRunning = false;
+
+        function startTimer() {
+            if (isRunning) return;
+            time = parseInt(document.getElementById("timeInput").value);
+            document.getElementById("timer").innerText = formatTime(time);
+
+            isRunning = true;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (time > 0) {
+                    time--;
+                    document.getElementById("timer").innerText = formatTime(time);
+                } else {
+                    clearInterval(timerInterval);
+                    document.getElementById("alarmSound").play();
+                    alert("時間終了！");
+                    isRunning = false;
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+        }
+
+        function resetTimer() {
+            stopTimer();
+            time = parseInt(document.getElementById("timeInput").value);
+            document.getElementById("timer").innerText = formatTime(time);
+        }
+
+        function formatTime(seconds) {
+            let minutes = Math.floor(seconds / 60);
+            let sec = seconds % 60;
+            return String(minutes).padStart(2, '0') + ":" + String(sec).padStart(2, '0');
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+    </script>
+
+</body>
+</html>
