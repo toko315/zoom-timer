@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zoom用タイマー</title>
+    <title>サイコロタイマー</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: black;
             color: white;
-            font-size: 4em;
+            font-size: 3em;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -18,24 +18,27 @@
             height: 100vh;
             margin: 0;
         }
-        input {
-            font-size: 1em;
-            width: 120px;
-            text-align: center;
-            margin-bottom: 10px;
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+            width: 80%;
+            max-width: 600px;
         }
         button {
             font-size: 1.5em;
-            padding: 15px 30px;
-            margin: 10px;
+            padding: 20px;
             border: none;
             cursor: pointer;
             border-radius: 10px;
+            width: 100%;
+            height: 100px;
         }
         #startBtn { background-color: #28a745; color: white; }
         #stopBtn { background-color: #dc3545; color: white; }
         #resetBtn { background-color: #007bff; color: white; }
-        #fullScreenBtn { background-color: #ffcc00; color: black; }
+        #diceBtn { background-color: #ffcc00; color: black; }
         #timer {
             font-size: 6em;
             font-weight: bold;
@@ -45,27 +48,24 @@
 </head>
 <body>
 
-    <div>
-        <input type="number" id="timeInput" value="60" min="1"> 秒
+    <div id="timer">00:00</div>
+
+    <div class="grid-container">
+        <button id="startBtn" onclick="startTimer()">▶ Start</button>
+        <button id="stopBtn" onclick="stopTimer()">⏸ Stop</button>
+        <button id="resetBtn" onclick="resetTimer()">🔄 Reset</button>
+        <button id="diceBtn" onclick="rollDice()">🎲 Dice</button>
     </div>
-    <div id="timer">01:00</div>
-    <button id="startBtn" onclick="startTimer()">▶ スタート</button>
-    <button id="stopBtn" onclick="stopTimer()">⏸ ストップ</button>
-    <button id="resetBtn" onclick="resetTimer()">🔄 リセット</button>
-    <button id="fullScreenBtn" onclick="toggleFullScreen()">⛶ 全画面</button>
 
     <audio id="alarmSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
 
     <script>
-        let time = 60;
+        let time = 0;
         let timerInterval;
         let isRunning = false;
 
         function startTimer() {
-            if (isRunning) return;
-            time = parseInt(document.getElementById("timeInput").value);
-            document.getElementById("timer").innerText = formatTime(time);
-
+            if (isRunning || time <= 0) return;
             isRunning = true;
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
@@ -88,22 +88,21 @@
 
         function resetTimer() {
             stopTimer();
-            time = parseInt(document.getElementById("timeInput").value);
+            time = 0;
+            document.getElementById("timer").innerText = "00:00";
+        }
+
+        function rollDice() {
+            let diceRoll = Math.floor(Math.random() * 6) + 1; // 1~6 のランダムな数
+            time = diceRoll * 10; // 出目に応じて10秒刻み
             document.getElementById("timer").innerText = formatTime(time);
+            startTimer(); // 出目が決まったら自動的にスタート
         }
 
         function formatTime(seconds) {
             let minutes = Math.floor(seconds / 60);
             let sec = seconds % 60;
             return String(minutes).padStart(2, '0') + ":" + String(sec).padStart(2, '0');
-        }
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                document.exitFullscreen();
-            }
         }
     </script>
 
