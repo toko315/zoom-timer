@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>シンプルZoomタイマー</title>
+  <title>Zoomタイマーとサイコロ</title>
   <style>
     body {
       font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -34,7 +34,8 @@
     
     .controls {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
       gap: 10px;
       margin-bottom: 20px;
     }
@@ -68,6 +69,47 @@
       color: white;
     }
     
+    #dice-btn {
+      background-color: #FF9800;
+      color: white;
+    }
+    
+    .dice-container {
+      perspective: 600px;
+      margin: 20px auto;
+      height: 150px;
+      width: 150px;
+      position: relative;
+      display: none;
+    }
+    
+    .dice {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 1s ease-out;
+    }
+    
+    .dice-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: white;
+      border: 2px solid #333;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: bold;
+      backface-visibility: hidden;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    
     .settings-panel {
       margin-top: 20px;
       text-align: left;
@@ -94,7 +136,7 @@
       font-weight: bold;
     }
     
-    input {
+    input, textarea {
       width: 100%;
       padding: 8px;
       border: 1px solid #ddd;
@@ -103,12 +145,28 @@
       box-sizing: border-box;
     }
     
+    .topic-input {
+      width: 100%;
+      margin-bottom: 5px;
+    }
+    
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      min-height: 50px;
+      padding: 10px;
+      border-radius: 8px;
+      background-color: #f0f0f0;
+      display: none;
+    }
+    
     .time-inputs {
       display: flex;
       gap: 10px;
     }
     
-    .time-inputs input {
+    .time-inputs > div {
       flex: 1;
     }
     
@@ -135,7 +193,7 @@
 </head>
 <body>
   <div class="container">
-    <h2>シンプルZoomタイマー</h2>
+    <h2>Zoomタイマー＆サイコロ</h2>
     
     <div class="timer-display" id="timer">05:00</div>
     
@@ -143,7 +201,21 @@
       <button id="start-btn" class="control-btn">スタート</button>
       <button id="stop-btn" class="control-btn">ストップ</button>
       <button id="reset-btn" class="control-btn">リセット</button>
+      <button id="dice-btn" class="control-btn">サイコロ</button>
     </div>
+    
+    <div class="dice-container" id="dice-container">
+      <div class="dice" id="dice">
+        <div class="dice-face" style="transform: rotateX(0deg) translateZ(75px);">趣味について</div>
+        <div class="dice-face" style="transform: rotateX(180deg) translateZ(75px);">最近あった面白い出来事</div>
+        <div class="dice-face" style="transform: rotateY(90deg) translateZ(75px);">おすすめの映画や本</div>
+        <div class="dice-face" style="transform: rotateY(-90deg) translateZ(75px);">将来の夢や目標</div>
+        <div class="dice-face" style="transform: rotateX(90deg) translateZ(75px);">行ってみたい場所</div>
+        <div class="dice-face" style="transform: rotateX(-90deg) translateZ(75px);">尊敬する人物</div>
+      </div>
+    </div>
+    
+    <div class="result" id="result"></div>
     
     <button id="settings-toggle" class="settings-btn">設定を表示</button>
     
@@ -170,6 +242,16 @@
         </div>
       </div>
       
+      <div class="settings-group">
+        <label>サイコロの会話トピック:</label>
+        <input type="text" class="topic-input" id="topic1" value="趣味について">
+        <input type="text" class="topic-input" id="topic2" value="最近あった面白い出来事">
+        <input type="text" class="topic-input" id="topic3" value="おすすめの映画や本">
+        <input type="text" class="topic-input" id="topic4" value="将来の夢や目標">
+        <input type="text" class="topic-input" id="topic5" value="行ってみたい場所">
+        <input type="text" class="topic-input" id="topic6" value="尊敬する人物">
+      </div>
+      
       <button id="save-settings" class="settings-btn">設定を保存</button>
     </div>
   </div>
@@ -180,6 +262,10 @@
     const startBtn = document.getElementById('start-btn');
     const stopBtn = document.getElementById('stop-btn');
     const resetBtn = document.getElementById('reset-btn');
+    const diceBtn = document.getElementById('dice-btn');
+    const diceContainer = document.getElementById('dice-container');
+    const dice = document.getElementById('dice');
+    const resultDiv = document.getElementById('result');
     const settingsToggle = document.getElementById('settings-toggle');
     const settingsPanel = document.getElementById('settings-panel');
     const saveSettingsBtn = document.getElementById('save-settings');
@@ -238,17 +324,7 @@
       timeLeft = (minutes * 60) + seconds;
       timerDisplay.textContent = formatTime(timeLeft);
       timerDisplay.style.color = '#333';
-    });
-    
-    // 設定パネルの表示切替
-    settingsToggle.addEventListener('click', () => {
-      if (settingsPanel.style.display === 'block') {
-        settingsPanel.style.display = 'none';
-        settingsToggle.textContent = '設定を表示';
-      } else {
-        settingsPanel.style.display = 'block';
-        settingsToggle.textContent = '設定を隠す';
-      }
+      resultDiv.style.display = 'none';
     });
     
     // プリセットボタン
@@ -261,8 +337,76 @@
       });
     });
     
+    // サイコロを振る関数
+    function rollDice() {
+      diceContainer.style.display = 'block';
+      
+      // サイコロの回転をランダムに設定
+      const rotations = [
+        "rotateX(0deg)",    // 1: 趣味について
+        "rotateX(180deg)",  // 2: 最近あった面白い出来事
+        "rotateY(90deg)",   // 3: おすすめの映画や本
+        "rotateY(-90deg)",  // 4: 将来の夢や目標
+        "rotateX(90deg)",   // 5: 行ってみたい場所
+        "rotateX(-90deg)"   // 6: 尊敬する人物
+      ];
+      
+      // ランダムな面を選ぶ
+      const randomIndex = Math.floor(Math.random() * 6);
+      const rotation = rotations[randomIndex];
+      
+      // サイコロを回転させるアニメーション
+      dice.style.transform = "rotateX(720deg) rotateY(720deg)";
+      
+      setTimeout(() => {
+        dice.style.transform = rotation;
+      }, 50);
+      
+      // トピックを表示して自動的にタイマーを開始
+      setTimeout(() => {
+        // トピックを取得
+        const topicElements = Array.from({ length: 6 }, (_, i) => document.getElementById(`topic${i+1}`));
+        const selectedTopic = topicElements[randomIndex].value;
+        
+        // 結果を表示
+        resultDiv.textContent = `トピック: ${selectedTopic}`;
+        resultDiv.style.display = 'block';
+        
+        // タイマーを自動スタート
+        clearInterval(timer);
+        const minutes = parseInt(minutesInput.value) || 0;
+        const seconds = parseInt(secondsInput.value) || 0;
+        timeLeft = (minutes * 60) + seconds;
+        timerDisplay.textContent = formatTime(timeLeft);
+        timerDisplay.style.color = '#333';
+        isRunning = true;
+        timer = setInterval(updateTimer, 1000);
+      }, 1200);
+    }
+    
+    // サイコロボタン
+    diceBtn.addEventListener('click', rollDice);
+    
+    // 設定パネルの表示切替
+    settingsToggle.addEventListener('click', () => {
+      if (settingsPanel.style.display === 'block') {
+        settingsPanel.style.display = 'none';
+        settingsToggle.textContent = '設定を表示';
+      } else {
+        settingsPanel.style.display = 'block';
+        settingsToggle.textContent = '設定を隠す';
+      }
+    });
+    
     // 設定の保存
     saveSettingsBtn.addEventListener('click', () => {
+      // サイコロの面を更新
+      const faces = document.querySelectorAll('.dice-face');
+      for (let i = 0; i < 6; i++) {
+        const topic = document.getElementById(`topic${i+1}`).value;
+        faces[i].textContent = topic;
+      }
+      
       // タイマーのリセット
       resetBtn.click();
       
