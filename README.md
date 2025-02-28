@@ -46,5 +46,12 @@
 
 ---
 ## 🔗 GitHub Pages（オンライン版）
-🔗 **[Zoom Timer を開く](https://toko315.github.io/zoom-timer/)**
+ズームタイマーには **通常モード** と **サイコロモード** の2種類があります。
+
+### 🔹 通常モード（カウントダウンタイマー）
+👉 [通常モードを開く](https://toko315.github.io/zoom-timer/index.html)
+
+### 🎲 サイコロモード（ランダムタイマー）
+👉 [サイコロモードを開く](https://toko315.github.io/zoom-timer/dice.html)
+
 
